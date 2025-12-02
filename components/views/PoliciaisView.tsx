@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Trash2, CheckCircle, FileText, AlertCircle, Calculator, User, Calendar, Plus } from 'lucide-react';
+import { Trash2, CheckCircle, FileText, AlertCircle, Calculator, User, Calendar, Plus, Search } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import { Afastamento, Averbacao } from '../../types';
@@ -23,6 +23,31 @@ const ORGAOS_AVERBACAO = [
   "Serviço Público Municipal",
   "INSS / Iniciativa Privada",
   "Outros"
+];
+
+// Banco de dados simulado para pesquisa
+const MOCK_DB = [
+  { 
+    rg: "80.961", 
+    nome: "Madelon de Souza Candido", 
+    posto: "Maj PM", 
+    matricula: "4189347-6", 
+    praca: "2004-04-01" 
+  },
+  { 
+    rg: "50.000", 
+    nome: "João da Silva", 
+    posto: "Sd PM", 
+    matricula: "500123-4", 
+    praca: "2015-06-15" 
+  },
+  { 
+    rg: "12.345", 
+    nome: "Maria Oliveira", 
+    posto: "Cap PM", 
+    matricula: "123456-7", 
+    praca: "2010-02-20" 
+  }
 ];
 
 export const PoliciaisView: React.FC = () => {
@@ -69,6 +94,34 @@ export const PoliciaisView: React.FC = () => {
       }
     }
   }, [newAv.ini, newAv.fim]);
+
+  const handleSearch = () => {
+    const searchRG = state.policial.rg?.trim();
+    
+    if (!searchRG) {
+      alert("Por favor, digite um RG para pesquisar.");
+      return;
+    }
+
+    // Busca no Mock DB (removendo pontos para facilitar a busca)
+    const found = MOCK_DB.find(p => 
+      p.rg === searchRG || p.rg.replace(/\./g, '') === searchRG.replace(/\./g, '')
+    );
+
+    if (found) {
+      updatePolicial({
+        ...state.policial,
+        nome: found.nome,
+        posto: found.posto,
+        matricula: found.matricula,
+        praca: found.praca,
+        rg: found.rg // Padroniza o RG conforme o banco
+      });
+      alert(`Policial ${found.nome} encontrado!`);
+    } else {
+      alert("Policial não encontrado na base de dados do sistema.");
+    }
+  };
 
   const handleAddAf = () => {
     if (!newAf.ini || !newAf.fim) return alert('Datas obrigatórias');
@@ -156,6 +209,7 @@ export const PoliciaisView: React.FC = () => {
             <input 
               className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pmerj-blue outline-none bg-white text-gray-900"
               value={state.policial.rg}
+              placeholder="Digite o RG para pesquisar (Ex: 80.961)"
               onChange={(e) => updatePolicial({...state.policial, rg: e.target.value})}
             />
           </div>
@@ -171,12 +225,21 @@ export const PoliciaisView: React.FC = () => {
             <label className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1">
               <Calendar size={12} /> Data de Praça (Início)
             </label>
-            <input 
-              type="date"
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pmerj-blue outline-none bg-white text-gray-900"
-              value={state.policial.praca}
-              onChange={(e) => updatePolicial({...state.policial, praca: e.target.value})}
-            />
+            <div className="flex gap-2">
+              <input 
+                type="date"
+                className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pmerj-blue outline-none bg-white text-gray-900"
+                value={state.policial.praca}
+                onChange={(e) => updatePolicial({...state.policial, praca: e.target.value})}
+              />
+              <button 
+                className="bg-pmerj-blue text-white p-2 rounded-lg hover:bg-blue-700 transition-colors" 
+                title="Pesquisar por RG"
+                onClick={handleSearch}
+              >
+                <Search size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </Card>
@@ -278,7 +341,7 @@ export const PoliciaisView: React.FC = () => {
             </div>
 
             <div>
-               <label className="block text-[10px] font-medium text-gray-500 mb-1">Dias Líquidos (para contagem)</label>
+               <label className="block text-[10px] font-medium text-gray-500 mb-1">Dias Líquidos</label>
                <input type="number" min="0" className="w-full p-2 border border-gray-300 rounded text-xs bg-white text-gray-900" 
                   value={newAv.dias} onChange={e => setNewAv({...newAv, dias: parseInt(e.target.value)})}
                />
