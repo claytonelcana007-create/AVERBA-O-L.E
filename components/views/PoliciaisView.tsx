@@ -46,7 +46,8 @@ export const PoliciaisView: React.FC = () => {
     orig: 'Exército Brasileiro',
     dias: 0,
     ini: '',
-    fim: ''
+    fim: '',
+    doc: ''
   });
 
   // Auto-calculate days when dates change for Averbacao
@@ -90,10 +91,10 @@ export const PoliciaisView: React.FC = () => {
       ini: newAv.ini!,
       fim: newAv.fim!,
       dias: Number(newAv.dias),
-      doc: '—',
+      doc: newAv.doc || '—',
       status: 'Validado' // Auto-validate for immediate calculation
     });
-    setNewAv({ orig: 'Exército Brasileiro', dias: 0, ini: '', fim: '' });
+    setNewAv({ orig: 'Exército Brasileiro', dias: 0, ini: '', fim: '', doc: '' });
   };
 
   // Helper to calculate duration in days between two dates string
@@ -283,6 +284,13 @@ export const PoliciaisView: React.FC = () => {
                />
             </div>
 
+            <div>
+               <label className="block text-[10px] font-medium text-gray-500 mb-1">BOL PM</label>
+               <input type="text" placeholder="Ex: Bol PM nº 123 de 2024" className="w-full p-2 border border-gray-300 rounded text-xs bg-white text-gray-900" 
+                  value={newAv.doc} onChange={e => setNewAv({...newAv, doc: e.target.value})}
+               />
+            </div>
+
             <button 
               onClick={handleAddAv}
               className="w-full mt-2 bg-pmerj-dark text-white py-2 rounded hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2 text-xs font-semibold"
@@ -383,6 +391,9 @@ export const PoliciaisView: React.FC = () => {
                       <td className="px-3 py-2 text-xs">
                         <div className="text-pmerj-dark font-semibold truncate max-w-[180px]" title={item.orig}>{item.orig}</div>
                         <div className="text-gray-500 text-[10px]">{item.ini} à {item.fim}</div>
+                        {item.doc && item.doc !== '—' && (
+                           <div className="text-blue-600 text-[10px] italic">{item.doc}</div>
+                        )}
                       </td>
                       <td className="px-3 py-2 font-mono text-xs font-bold text-green-700">+{item.dias}</td>
                       <td className="px-3 py-2">
