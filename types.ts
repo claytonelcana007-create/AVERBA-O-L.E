@@ -12,7 +12,9 @@ export interface Calculo {
   anos: number;
   dec: number;
   prox: string;
-  decenio1: string; // Novo campo
+  decenio1: string;
+  decenio2: string;
+  decenio3: string; // Novo campo
   tempoFormatado?: string;
 }
 

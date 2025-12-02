@@ -29,7 +29,6 @@ export const PoliciaisView: React.FC = () => {
   const { 
     state, 
     updatePolicial,
-    // recalculate is no longer needed manually
     addAfastamento, updateAfastamento, removeAfastamento,
     addAverbacao, updateAverbacao, removeAverbacao
   } = useApp();
@@ -97,14 +96,22 @@ export const PoliciaisView: React.FC = () => {
     setNewAv({ orig: 'Exército Brasileiro', dias: 0, ini: '', fim: '' });
   };
 
+  // Helper to calculate duration in days between two dates string
+  const calculateDays = (ini: string, fim: string) => {
+    if (!ini || !fim) return 0;
+    const d1 = new Date(ini);
+    const d2 = new Date(fim);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+    const diffTime = d2.getTime() - d1.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+
   // Helper to format days into Years, Months, Days (Gregorian Calendar Logic)
-  // We calculate backwards from Today to find the exact span covering leap years correctly
   const formatTempo = (totalDias: number) => {
     if (totalDias <= 0) return { anos: 0, meses: 0, dias: 0 };
     
     const today = new Date();
     // Create a virtual start date by subtracting total days from today
-    // Javascript Date handles leap years when subtracting days
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - totalDias);
 
@@ -114,7 +121,6 @@ export const PoliciaisView: React.FC = () => {
 
     if (dias < 0) {
       meses--;
-      // Get last day of the previous month relative to 'today'
       const lastDayPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
       dias += lastDayPrevMonth;
     }
@@ -197,28 +203,37 @@ export const PoliciaisView: React.FC = () => {
                 </div>
                 
                 {/* 1º Decênio */}
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center border-l-4 border-l-pmerj-dark col-span-2 sm:col-span-1">
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center border-l-4 border-l-pmerj-dark">
                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">1º Decênio</div>
                    <div className="text-xl font-bold text-pmerj-dark truncate mt-1">
                       {state.calc.decenio1 ? new Date(state.calc.decenio1).toLocaleDateString('pt-BR') : '—'}
                    </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center col-span-2 sm:col-span-1">
-                   <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Decênios Totais</div>
-                   <div className="text-3xl font-bold text-pmerj-blue">{state.calc.dec}</div>
+                {/* 2º Decênio */}
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center border-l-4 border-l-pmerj-blue">
+                   <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">2º Decênio</div>
+                   <div className="text-xl font-bold text-pmerj-blue truncate mt-1">
+                      {state.calc.decenio2 ? new Date(state.calc.decenio2).toLocaleDateString('pt-BR') : '—'}
+                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center border-b-2 border-b-pmerj-green col-span-2">
-                   <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Próx. Decênio (Previsão)</div>
+                {/* 3º Decênio */}
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center border-l-4 border-l-pmerj-green col-span-2">
+                   <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">3º Decênio</div>
                    <div className="text-xl font-bold text-pmerj-green truncate mt-1">
-                      {new Date(state.calc.prox).toLocaleDateString('pt-BR')}
+                      {state.calc.decenio3 ? new Date(state.calc.decenio3).toLocaleDateString('pt-BR') : '—'}
                    </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center border-b-2 border-b-pmerj-yellow col-span-2">
+                   <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Decênios Completos</div>
+                   <div className="text-3xl font-bold text-pmerj-dark">{state.calc.dec}</div>
                 </div>
              </div>
            </div>
            <div className="mt-4 text-[10px] text-gray-500 text-center">
-             * 1º Decênio = Praça + 3650 + Afastamentos - Averbações.
+             * Decênio = Praça + (10/20/30 anos) + Afastamentos - Averbações.
            </div>
         </div>
 
@@ -291,16 +306,22 @@ export const PoliciaisView: React.FC = () => {
                 <thead className="bg-gray-50 text-gray-600 uppercase font-semibold text-[10px]">
                   <tr>
                     <th className="px-3 py-2">Período</th>
+                    <th className="px-3 py-2">Dias Líquidos</th>
                     <th className="px-3 py-2">Status</th>
                     <th className="px-3 py-2 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {state.afast.map((item) => (
+                  {state.afast.map((item) => {
+                    const days = calculateDays(item.ini, item.fim);
+                    return (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-3 py-2 text-xs">
                         <div className="font-medium">{item.ini}</div>
                         <div className="text-gray-500">{item.fim}</div>
+                      </td>
+                      <td className="px-3 py-2 font-mono text-xs font-bold text-red-600">
+                        {item.nat === 'Não conta' ? `+${days}` : '0'}
                       </td>
                       <td className="px-3 py-2">
                         <Badge type={item.status === 'Validado' ? 'success' : 'warning'}>
@@ -313,8 +334,8 @@ export const PoliciaisView: React.FC = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
-                  {state.afast.length === 0 && <tr><td colSpan={3} className="text-center py-4 text-xs text-gray-400">Vazio</td></tr>}
+                  )})}
+                  {state.afast.length === 0 && <tr><td colSpan={4} className="text-center py-4 text-xs text-gray-400">Vazio</td></tr>}
                 </tbody>
               </table>
             </div>

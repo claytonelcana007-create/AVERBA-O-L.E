@@ -88,18 +88,32 @@ const calculateStats = (
   const nextDecenioDate = new Date(effectiveStartDate);
   nextDecenioDate.setFullYear(nextDecenioDate.getFullYear() + ((dec + 1) * 10));
   
-  // 7. Cálculo Específico do 1º Decênio
-  // Regra: Data Praça + 3650 dias + Afastamentos - Averbações
+  // 7. Cálculo Específico do 1º, 2º e 3º Decênio
+  // Regra: Data Praça + X dias (10/20/30 anos) + Afastamentos - Averbações
   let decenio1DateStr = "—";
+  let decenio2DateStr = "—";
+  let decenio3DateStr = "—";
+
   if (policial.praca) {
-    const d1Date = new Date(policial.praca);
-    if (!isNaN(d1Date.getTime())) {
-      // Adiciona 3650 dias (10 anos fixos em dias)
-      // Adiciona dias de afastamento (atrasa o decênio)
-      // Remove dias de averbação (adianta o decênio)
-      const diasParaAdicionar = 3650 + diasAfastNaoConta - diasAverbados;
-      d1Date.setDate(d1Date.getDate() + diasParaAdicionar);
+    const pracaDate = new Date(policial.praca);
+    if (!isNaN(pracaDate.getTime())) {
+      // 1º Decênio (10 anos = 3650 dias base)
+      const d1Date = new Date(pracaDate);
+      const diasParaAdicionarD1 = 3650 + diasAfastNaoConta - diasAverbados;
+      d1Date.setDate(d1Date.getDate() + diasParaAdicionarD1);
       decenio1DateStr = d1Date.toISOString().split('T')[0];
+
+      // 2º Decênio (20 anos = 7300 dias base)
+      const d2Date = new Date(pracaDate);
+      const diasParaAdicionarD2 = 7300 + diasAfastNaoConta - diasAverbados;
+      d2Date.setDate(d2Date.getDate() + diasParaAdicionarD2);
+      decenio2DateStr = d2Date.toISOString().split('T')[0];
+
+      // 3º Decênio (30 anos = 10950 dias base)
+      const d3Date = new Date(pracaDate);
+      const diasParaAdicionarD3 = 10950 + diasAfastNaoConta - diasAverbados;
+      d3Date.setDate(d3Date.getDate() + diasParaAdicionarD3);
+      decenio3DateStr = d3Date.toISOString().split('T')[0];
     }
   }
 
@@ -109,6 +123,8 @@ const calculateStats = (
     dec: dec,
     prox: nextDecenioDate.toISOString().split('T')[0],
     decenio1: decenio1DateStr,
+    decenio2: decenio2DateStr,
+    decenio3: decenio3DateStr,
     tempoFormatado: "" // Calculado na View para precisão de display
   };
 };

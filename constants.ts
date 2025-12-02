@@ -15,7 +15,9 @@ export const INITIAL_STATE: AppState = {
     anos: 0, 
     dec: 0, 
     prox: "",
-    decenio1: "—", // Valor inicial placeholder
+    decenio1: "—",
+    decenio2: "—",
+    decenio3: "—", // Inicializa o novo campo
     tempoFormatado: "0a 0m 0d"
   },
   afast: [],
